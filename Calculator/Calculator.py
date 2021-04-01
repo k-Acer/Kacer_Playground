@@ -18,7 +18,11 @@ class TokenManager:
 class Calculator:
     """電卓"""
     def calc(self, formula: str) -> str:
-        """計算全体"""
+        """
+        lexer で字句解析
+        parser で構文解析
+        calculate で計算を行う
+        """
         print("formula")
         print(formula)
         tokens = self.lexer(formula)
@@ -27,7 +31,10 @@ class Calculator:
         ast = self.parser(tokens)
         print("ast")
         print(ast)
-        return self.calculate(ast)
+        answer = self.calculate(ast)
+        print("answer")
+        print(answer)
+        return answer
 
     def lexer(self, formula: str) -> list:
         """字句解析"""
@@ -35,36 +42,42 @@ class Calculator:
             raise RuntimeError("空文字列")
         else:
             token = []
-            numberElements = []
+            numberElements = []  # 数値を構成する
             for char in formula:
                 if char in [str(i) for i in range(0, 10)]:
+                    """charが数値の場合"""
                     numberElements.insert(0, int(char))
                 elif char in ['+', '-', '*', '/', '^', '(', ')', 'e']:
+                    """charが演算子 or 括弧の場合"""
                     if len(numberElements) != 0:
-                        self.makeNumber(numberElements, token)
+                        number = self.makeNumber(numberElements, token)
+                        token.append(number)
                     token.append(char)
                 else:
                     raise RuntimeError("数値、演算子、括弧以外の入力")
-
             if len(numberElements) != 0:
-                self.makeNumber(numberElements, token)
-
+                """最後の数値の処理"""
+                number = self.makeNumber(numberElements, token)
+                token.append(number)
             return token
 
-    def makeNumber(self, numberElements: list, token: list):
-        """数値の処理"""
+    def makeNumber(self, numberElements: list, token: list) -> int:
+        """
+        数値の作成
+        ２桁以上の数値を識別するにはこの処理が必要
+        """
         number = 0
         for i in range(len(numberElements)):
             number = number + (numberElements[i] * (10**i))
-        token.append(number)
         numberElements.clear()
+        return number
 
     """
     BNF
-    <expl> ::= <term> ( '+'<term> | '-'<term> )* 
-    <term> ::= <expo> ( '*'<expo> | '/'<expo> )* 
-    <expo> ::= <fact> ( '^'<fact>)*
-    <fact> ::= '+'('('<expl>')' | 数値 |'e') | '-'('('<expl>')' | 数値 | 'e')  | '('<expl>')' | 数値 | 'e
+    <expl> ::= <term> ('+'<term>|'-'<term>)* 
+    <term> ::= <expo> ('*'<expo>|'/'<expo>)* 
+    <expo> ::= <fact> ('^'<fact>)*
+    <fact> ::= '+'('('<expl>')'|数値|'e') | '-'('('<expl>')'|数値|'e') | '('<expl>')'|数値|'e'
     """
 
     def parser(self, tokens: list):
@@ -103,7 +116,7 @@ class Calculator:
         while tokenManager.unFinish() and tokenManager.currentToken() == "^":
             inputOperator = "^"
             tokenManager.next()
-            right = self.fact(tokenManager)  
+            right = self.fact(tokenManager)
             left = [inputOperator, left, right]
         return left
 
@@ -185,13 +198,15 @@ class Calculator:
         elif ast[0] == "/":
             div = self.calculate(ast[1]) / self.calculate(ast[2])
             return div
-        else:
+        elif ast[0] == "^":
             exp = self.calculate(ast[1]) ** self.calculate(ast[2])
             return exp
+        else:
+            RuntimeError("謎のエラー")
 
 
 if __name__ == "__main__":
     calculator = Calculator()
-    answer = calculator.calc("e+1*2")
+    answer = calculator.calc("2^3+4*2+5")
     print("answer = {}".format(answer))
 
