@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Image2Picture</title>
+</head>
+<body>
+    <p>画像ファイルを選択してください。</p>
+    <form action="/post" method="post" class="form-inline" enctype = "multipart/form-data">
+    <P><input type="file" name="file"></p>
+    <p><button type="submit">送信</button>
+    </form>
+
+    <p>{% if check %}
+        <p>Pictures\\Image2Pictureに保存されます。</P>
+       {% endif %}
+    </p>
+
+</body>
+</html>
